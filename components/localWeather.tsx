@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { toast } from "nextjs-toast-notify";
 import "nextjs-toast-notify/dist/nextjs-toast-notify.css";
 import debounce from "lodash/debounce";
@@ -32,7 +32,7 @@ interface WeatherData {
 }
 
 const LocalWeather = () => {
-  const [WeatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [city, setCity] = useState<string>("");
   const [search, setSearch] = useState<string>("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -50,7 +50,7 @@ const LocalWeather = () => {
       const data = await response.json();
       if (data.cod === 200) {
         setWeatherData(data);
-        const weatherDescription = data?.weather?.[0]?.description || "";
+        const weatherDescription = data.weather?.[0]?.description || "";
 
         if (weatherDescription.includes("clear")) setBgImage(backgroundImage.clearSky);
         else if (weatherDescription.includes("clouds")) setBgImage(backgroundImage.cloudy);
@@ -66,35 +66,38 @@ const LocalWeather = () => {
         toast.error("City not found", { duration: 3000, position: "top-center" });
       }
     } catch (error) {
-      toast.error("Something went wrong", { duration: 3000, position: "top-center" });
+      toast.error("Failed to fetch weather data", { duration: 3000, position: "top-center" });
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchSuggestions = debounce(async (query: string) => {
-    if (!query || citySelected) return setSuggestions([]);
-    try {
-      const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/find?q=${query}&appid=${apikey}`
-      );
-      const data = await response.json();
-      if (data && data.list?.length > 0) {
-        const cities = data.list.map((item: any) => item.name);
-        setSuggestions(cities);
-      } else {
-        setSuggestions([]);
+  const fetchSuggestions = useCallback(
+    debounce(async (query: string) => {
+      if (!query.trim() || citySelected) return setSuggestions([]);
+      try {
+        const response = await fetch(
+          `https://api.openweathermap.org/data/2.5/find?q=${query}&appid=${apikey}`
+        );
+        const data = await response.json();
+        if (data && data.list?.length > 0) {
+          const cities = data.list.map((item: any) => item.name);
+          setSuggestions(cities);
+        } else {
+          setSuggestions([]);
+        }
+      } catch (error) {
+        console.error("Error fetching suggestions", error);
       }
-    } catch (error) {
-      console.error("Something went wrong", error);
-    }
-  }, 500);
+    }, 300),
+    [apikey, citySelected]
+  );
 
   useEffect(() => {
     if (search && !citySelected) {
       fetchSuggestions(search);
     }
-  }, [search, citySelected]);
+  }, [search, citySelected, fetchSuggestions]);
 
   const handleSearch = () => {
     if (search.trim()) {
@@ -167,19 +170,19 @@ const LocalWeather = () => {
         <div className="flex justify-center items-center mt-10">
           <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 animate-spin"></div>
         </div>
-      ) : WeatherData ? (
+      ) : weatherData ? (
         <div className="mt-10 bg-white bg-opacity-60 rounded-lg p-5 w-full max-w-3xl mx-auto">
           <h1 className="text-yellow-600 font-extrabold text-2xl">🌡️ Temperature</h1>
-          <p className="text-yellow-600">- Current Temperature: {WeatherData?.main?.temp}°C</p>
-          <p className="text-yellow-600">- Feels Like: {WeatherData?.main?.feels_like}°C</p>
-          <p className="text-yellow-600">- Max: {WeatherData?.main?.temp_max}°C</p>
-          <p className="text-yellow-600">- Min: {WeatherData?.main?.temp_min}°C</p>
-          <p className="text-yellow-600">- Humidity: {WeatherData?.main?.humidity}%</p>
+          <p className="text-yellow-600">- Current Temperature: {weatherData.main.temp}°C</p>
+          <p className="text-yellow-600">- Feels Like: {weatherData.main.feels_like}°C</p>
+          <p className="text-yellow-600">- Max: {weatherData.main.temp_max}°C</p>
+          <p className="text-yellow-600">- Min: {weatherData.main.temp_min}°C</p>
+          <p className="text-yellow-600">- Humidity: {weatherData.main.humidity}%</p>
           <p className="text-yellow-600">
-            - Weather: {WeatherData?.weather[0]?.description || "N/A"}
+            - Weather: {weatherData.weather[0]?.description || "N/A"}
           </p>
-          {WeatherData?.main?.sea_level && (
-            <p className="text-yellow-600">- Sea Level: {WeatherData?.main?.sea_level} hPa</p>
+          {weatherData.main.sea_level && (
+            <p className="text-yellow-600">- Sea Level: {weatherData.main.sea_level} hPa</p>
           )}
         </div>
       ) : (
