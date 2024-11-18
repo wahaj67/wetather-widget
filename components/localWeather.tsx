@@ -39,8 +39,7 @@ const LocalWeather = () => {
   const [bgImage, setBgImage] = useState<string>(backgroundImage.night);
   const [loading, setLoading] = useState<boolean>(false);
   const [citySelected, setCitySelected] = useState<boolean>(false);
-  const apikey = process.env.NEXT_PUBLIC_WEATHER_API_KEY;
-
+  const apikey = process.env.NEXT_PUBLIC_WEATHER_API_KEY ?? '';
   // Fetch weather data for a selected city
   const fetchWeatherData = async (cityToFetch: string) => {
     setLoading(true);
