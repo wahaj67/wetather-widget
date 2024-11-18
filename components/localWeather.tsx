@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback,  } from "react";
 import { toast } from "nextjs-toast-notify";
 import "nextjs-toast-notify/dist/nextjs-toast-notify.css";
 import debounce from "lodash/debounce";
@@ -39,19 +39,19 @@ const LocalWeather = () => {
   const [bgImage, setBgImage] = useState<string>(backgroundImage.night);
   const [loading, setLoading] = useState<boolean>(false);
   const [citySelected, setCitySelected] = useState<boolean>(false);
-  const apikey = process.env.NEXT_PUBLIC_WEATHER_API_KEY ?? '';
-  // Fetch weather data for a selected city
+  const apiKey = process.env.NEXT_PUBLIC_WEATHER_API_KEY ?? '';
+
   const fetchWeatherData = async (cityToFetch: string) => {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${cityToFetch}&appid=${apikey}&units=metric`
+        `https://api.openweathermap.org/data/2.5/weather?q=${cityToFetch}&appid=${apiKey}&units=metric`
       );
       const data = await response.json();
       if (data.cod === 200) {
         setWeatherData(data);
         const weatherDescription = data.weather?.[0]?.description || "";
-        // Set background based on weather description
+        
         if (weatherDescription.includes("clear")) setBgImage(backgroundImage.clearSky);
         else if (weatherDescription.includes("clouds")) setBgImage(backgroundImage.cloudy);
         else if (weatherDescription.includes("rain")) setBgImage(backgroundImage.rain);
@@ -72,13 +72,13 @@ const LocalWeather = () => {
     }
   };
 
-  // Memoized fetch for suggestions, prevents re-fetching during rapid input changes
+ 
   const fetchSuggestions = useCallback(
     debounce(async (query: string) => {
       if (!query.trim() || citySelected) return setSuggestions([]);
       try {
         const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/find?q=${query}&appid=${apikey}`
+          `https://api.openweathermap.org/data/2.5/find?q=${query}&appid=${apiKey}`
         );
         const data = await response.json();
         if (data && data.list?.length > 0) {
@@ -91,11 +91,10 @@ const LocalWeather = () => {
         console.error("Error fetching suggestions", error);
       }
     }, 300),
-    [apikey, citySelected]
+    [apiKey, citySelected]
   );
 
-  // Handle search input change
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     setCitySelected(false);
   };
