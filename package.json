@@ -9,11 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@nextui-org/button": "^2.0.38",
-    "@nextui-org/input": "^2.2.5",
-    "@nextui-org/system": "^2.2.6",
-    "@nextui-org/theme": "^2.2.11",
-    "framer-motion": "^11.11.17",
     "lodash": "^4.17.21",
     "next": "15.0.3",
     "nextjs-toast-notify": "^1.27.0",
