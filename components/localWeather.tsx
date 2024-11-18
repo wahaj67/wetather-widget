@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { toast } from "nextjs-toast-notify";
 import "nextjs-toast-notify/dist/nextjs-toast-notify.css";
 import debounce from "lodash/debounce";
@@ -41,6 +41,7 @@ const LocalWeather = () => {
   const [citySelected, setCitySelected] = useState<boolean>(false);
   const apikey = process.env.NEXT_PUBLIC_WEATHER_API_KEY;
 
+  // Fetch weather data for a selected city
   const fetchWeatherData = async (cityToFetch: string) => {
     setLoading(true);
     try {
@@ -51,7 +52,7 @@ const LocalWeather = () => {
       if (data.cod === 200) {
         setWeatherData(data);
         const weatherDescription = data.weather?.[0]?.description || "";
-
+        // Set background based on weather description
         if (weatherDescription.includes("clear")) setBgImage(backgroundImage.clearSky);
         else if (weatherDescription.includes("clouds")) setBgImage(backgroundImage.cloudy);
         else if (weatherDescription.includes("rain")) setBgImage(backgroundImage.rain);
@@ -72,6 +73,7 @@ const LocalWeather = () => {
     }
   };
 
+  // Memoized fetch for suggestions, prevents re-fetching during rapid input changes
   const fetchSuggestions = useCallback(
     debounce(async (query: string) => {
       if (!query.trim() || citySelected) return setSuggestions([]);
@@ -92,6 +94,12 @@ const LocalWeather = () => {
     }, 300),
     [apikey, citySelected]
   );
+
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setCitySelected(false);
+  };
 
   useEffect(() => {
     if (search && !citySelected) {
@@ -137,10 +145,7 @@ const LocalWeather = () => {
           type="search"
           placeholder="Search by city name..."
           value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setCitySelected(false);
-          }}
+          onChange={handleSearchChange}
           className="text-black outline-none rounded-lg shadow-md w-full max-w-md p-2"
           aria-label="city name"
         />
