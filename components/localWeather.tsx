@@ -51,6 +51,7 @@ const LocalWeather = () => {
       if (data.cod === 200) {
         setWeatherData(data);
         const weatherDescription = data.weather?.[0]?.description || "";
+        console.log(apiKey,"api")
         
         if (weatherDescription.includes("clear")) setBgImage(backgroundImage.clearSky);
         else if (weatherDescription.includes("clouds")) setBgImage(backgroundImage.cloudy);
